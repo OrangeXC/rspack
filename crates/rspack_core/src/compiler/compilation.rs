@@ -344,7 +344,7 @@ impl Compilation {
     fast_drop(
       self
         .module_graph
-        .module_identifier_to_module
+        .modules_mut()
         .values_mut()
         .map(|module| {
           if let Some(m) = module.as_normal_module_mut() {
@@ -366,20 +366,17 @@ impl Compilation {
     let mut origin_module_deps = HashMap::default();
     // handle setup params
     if let SetupMakeParam::ModifiedFiles(files) = &params {
-      force_build_module.extend(
-        self
+      force_build_module.extend(self.module_graph.modules().values().filter_map(|module| {
+        // check has dependencies modified
+        if self
           .module_graph
-          .module_identifier_to_module
-          .values()
-          .filter_map(|module| {
-            // check has dependencies modified
-            if module.has_dependencies(files) {
-              Some(module.identifier())
-            } else {
-              None
-            }
-          }),
-      );
+          .has_dependencies(&module.identifier(), files)
+        {
+          Some(module.identifier())
+        } else {
+          None
+        }
+      }));
       // collect origin_module_deps
       for module_id in &force_build_module {
         let mgm = self
@@ -654,16 +651,16 @@ impl Compilation {
 
               self
                 .file_dependencies
-                .extend(build_result.file_dependencies);
+                .extend(build_result.build_info.file_dependencies.clone());
               self
                 .context_dependencies
-                .extend(build_result.context_dependencies);
+                .extend(build_result.build_info.context_dependencies.clone());
               self
                 .missing_dependencies
-                .extend(build_result.missing_dependencies);
+                .extend(build_result.build_info.missing_dependencies.clone());
               self
                 .build_dependencies
-                .extend(build_result.build_dependencies);
+                .extend(build_result.build_info.build_dependencies.clone());
 
               let mut dep_ids = vec![];
               for dependency in build_result.dependencies {
@@ -683,9 +680,11 @@ impl Compilation {
                 original_module_identifier: module.identifier(),
                 resolve_options: module.get_resolve_options().map(ToOwned::to_owned),
               });
-              self
-                .module_graph
-                .set_module_hash(&module.identifier(), build_result.hash);
+              self.module_graph.set_module_build_info_and_meta(
+                &module.identifier(),
+                build_result.build_info,
+                build_result.build_meta,
+              );
               self.module_graph.add_module(module);
             }
             Ok(TaskResult::ProcessDependencies(task_result)) => {
@@ -776,6 +775,7 @@ impl Compilation {
       self.bailout_module_identifiers = self
         .module_graph
         .modules()
+        .values()
         .par_bridge()
         .filter_map(|module| {
           if module.as_context_module().is_some() {
@@ -848,7 +848,7 @@ impl Compilation {
     ) -> Result<()> {
       let results = compilation
         .module_graph
-        .module_identifier_to_module
+        .modules()
         .par_iter()
         .filter(filter_op)
         .map(|(module_identifier, module)| {
@@ -1028,7 +1028,7 @@ impl Compilation {
   ) -> Result<()> {
     let mut module_runtime_requirements = self
       .module_graph
-      .module_identifier_to_module
+      .modules()
       .par_iter()
       .filter_map(|(_, module)| {
         if self

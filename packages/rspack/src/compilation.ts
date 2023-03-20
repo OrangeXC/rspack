@@ -65,7 +65,7 @@ export class Compilation {
 		processAssets: ReturnType<typeof createFakeProcessAssetsHook>;
 		log: tapable.SyncBailHook<[string, LogEntry], true>;
 		optimizeChunkModules: tapable.AsyncSeriesBailHook<
-			[Array<JsModule>],
+			[Iterable<JsChunk>, Iterable<JsModule>],
 			undefined
 		>;
 	};
@@ -82,7 +82,10 @@ export class Compilation {
 		this.hooks = {
 			processAssets: createFakeProcessAssetsHook(this),
 			log: new tapable.SyncBailHook(["origin", "logEntry"]),
-			optimizeChunkModules: new tapable.AsyncSeriesBailHook(["modules"])
+			optimizeChunkModules: new tapable.AsyncSeriesBailHook([
+				"chunks",
+				"modules"
+			])
 		};
 		this.compiler = compiler;
 		this.resolverFactory = compiler.resolverFactory;
@@ -206,6 +209,10 @@ export class Compilation {
 		options.warningsCount = optionOrLocalFallback(options.warningsCount, true);
 		options.hash = optionOrLocalFallback(options.hash, true);
 		options.publicPath = optionOrLocalFallback(options.publicPath, true);
+		options.outputPath = optionOrLocalFallback(
+			options.outputPath,
+			!context.forToString
+		);
 
 		return options;
 	}
@@ -514,6 +521,9 @@ export class Compilation {
 
 	getModules(): JsModule[] {
 		return this.#inner.getModules();
+	}
+	getChunks(): JsChunk[] {
+		return this.#inner.getChunks();
 	}
 
 	getStats() {

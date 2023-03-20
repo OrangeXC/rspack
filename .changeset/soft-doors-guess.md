@@ -3,4 +3,4 @@
 "@rspack/core": patch
 ---
 
-feat: stats for chunkRelations and chunkModules
+feat(runtime): support node.\_\_filename polyfill

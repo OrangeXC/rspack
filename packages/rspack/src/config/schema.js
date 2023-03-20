@@ -659,6 +659,10 @@ module.exports = {
 					description: "Include a polyfill for the '__dirname' variable.",
 					enum: [false, true, "warn-mock", "mock", "eval-only"]
 				},
+				__filename: {
+					description: "Include a polyfill for the '__filename' variable.",
+					enum: [false, true, "warn-mock", "mock", "eval-only"]
+				},
 				global: {
 					description: "Include a polyfill for the 'global' variable.",
 					enum: [false, true, "warn"]
@@ -1184,6 +1188,9 @@ module.exports = {
 				},
 				{
 					type: "string"
+				},
+				{
+					instanceof: "Function"
 				},
 				{
 					$ref: "#/definitions/RuleSetLogicalConditions"

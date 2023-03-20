@@ -2,4 +2,4 @@
 "@rspack/binding": patch
 ---
 
-fix: incremental rebuild not work
+fix: Tailwind CSS HMR not work

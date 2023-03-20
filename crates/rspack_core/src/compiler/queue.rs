@@ -54,7 +54,7 @@ impl WorkerTask for FactorizeTask {
     let dependencies = self
       .dependencies
       .iter()
-      .map(|d| *d.id().expect("should have dependency"))
+      .map(|d| d.id().expect("should have dependency"))
       .collect::<Vec<_>>();
     let dependency = &self.dependencies[0];
 
@@ -269,8 +269,6 @@ impl WorkerTask for BuildTask {
 
     build_result.map(|build_result| {
       let (build_result, diagnostics) = build_result.split_into_parts();
-
-      module.set_dependencies(&build_result);
 
       TaskResult::Build(BuildTaskResult {
         module,

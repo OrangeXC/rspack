@@ -259,7 +259,8 @@ export type RuleSetCondition =
 	| RegExp
 	| string
 	| RuleSetConditions
-	| RuleSetLogicalConditions;
+	| RuleSetLogicalConditions
+	| ((value: string) => boolean);
 export type RuleSetConditions = RuleSetCondition[];
 export interface RuleSetLogicalConditions {
 	and?: RuleSetConditions;
@@ -381,6 +382,7 @@ export type Node = NodeOptions;
 // | false;
 export interface NodeOptions {
 	__dirname?: false | true | "warn-mock" | "mock" | "eval-only";
+	__filename?: false | true | "warn-mock" | "mock" | "eval-only";
 	global?: boolean | "warn";
 }
 
@@ -421,6 +423,7 @@ export interface StatsOptions {
 	hash?: boolean;
 	reasons?: boolean;
 	publicPath?: boolean;
+	outputPath?: boolean;
 	chunkModules?: boolean;
 	chunkRelations?: boolean;
 }

@@ -1035,7 +1035,8 @@ impl<'a> ModuleRefAnalyze<'a> {
       };
       match rule.test {
         Some(ref test_rule) => {
-          if !test_rule.is_match(&resource_path.to_string_lossy()) {
+          let is_match = test_rule.try_match(&resource_path.to_string_lossy()).ok()?;
+          if !is_match {
             continue;
           }
         }
@@ -1366,7 +1367,7 @@ impl<'a> ModuleRefAnalyze<'a> {
           if dep.request() == src && dependency_type == dep.dependency_type() {
             self
               .module_graph
-              .module_graph_module_by_dependency_id(dep.id().expect("should have id"))
+              .module_graph_module_by_dependency_id(&dep.id().expect("should have id"))
               .map(|module| &module.module_identifier)
           } else {
             None
@@ -1526,7 +1527,6 @@ fn is_pure_class(class: &Class, unresolved_ctxt: SyntaxContext) -> bool {
       ClassMember::TsIndexSignature(_) => unreachable!(),
       ClassMember::Empty(_) => true,
       ClassMember::StaticBlock(_) => true,
-      ClassMember::AutoAccessor(_) => true,
     }
   })
 }

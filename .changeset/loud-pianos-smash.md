@@ -3,4 +3,4 @@
 "@rspack/core": patch
 ---
 
-feat: array type of externals
+fix: node mode interop
